@@ -28,17 +28,19 @@ int main(){
     FILE *request=fopen("tmp","r");
     char *content=get_content(request);
     fclose(request);
-    //puts(content);
-    regex_t latest_chapter_name;
-    regex_t latest_chapter_url;
-    regex_t recent_cahpters;
-    regcomp(&latest_chapter_name,"latest_chapter_name\" content=\".*?\"/>",REG_STARTEND);
+    puts(content);
+/*
+    regex_t latest_chapter_name,latest_chapter_url,recent_cahpters,test;
+    regcomp(&latest_chapter_name,"latest_chapter_name\" content=\".*?\"/>",REG_EXTENDED);
     regcomp(&latest_chapter_url,"latest_chapter_url\" content=\".*?\"/>",REG_EXTENDED);
     regcomp(&recent_cahpters,"<dd><a href=\".+?\" target=\"_blank\" title=\".+?\">.+?</a></dd>",REG_EXTENDED);
+    regcomp(&test,".{0,9}",REG_EXTENDED);
     regmatch_t matched[6];
-    //regexec(&latest_chapter_name,content,1,matched,REG_NOTBOL);
-    //regexec(&latest_chapter_url,content,1,matched,REG_NOTBOL);
-    regexec(&recent_cahpters,content,6,matched,REG_NOTBOL);
+    regexec(&latest_chapter_name,content,1,matched,REG_NOTBOL);
+    regexec(&latest_chapter_url,content,1,matched,REG_NOTBOL);
+    regexec(&test,content,6,matched,REG_NOTBOL);
+*/
+
 
     return 0;
 }

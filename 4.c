@@ -4,10 +4,53 @@
 #include<string.h>
 
 struct Chapters{
-    /* data */
-    char name[20];
+    char name[100];
     char url[100];
 } chapters[7];
+
+
+struct Compile{
+	char *body;
+	size_t size;
+	int child_num;
+	char **child;
+	regoff_t rm_eo;
+};
+ 
+struct Compile compile(int child_num,char *pattern,char *content){
+    regex_t preg;
+    regcomp(&preg,pattern,REG_EXTENDED);
+    regmatch_t matched[child_num+1];
+    int vv=regexec(&preg,content,child_num+1,matched,REG_NOTBOL);
+    if(vv!=0){
+	    char tmp[500];
+	regerror(vv,&preg,tmp,500);
+	puts(tmp);
+	exit(-1);
+    }
+    struct Compile res;
+    res.body=malloc(strlen(content)*child_num);
+    res.child=(char **)calloc(1,sizeof(char *));
+    res.size=0;
+    res.child_num=0;
+    char *pos=res.body;
+    for (int i=0;i<=child_num;i++){
+    	int len=matched[i].rm_eo-matched[i].rm_so;
+	char *ptr=&content[matched[i].rm_so];
+	strncpy(pos,ptr,len);
+	res.size+=(len+1);
+	pos[len]='\0';
+	res.child_num=i;
+	if(i>0){
+		res.child[i-1]=pos;
+	}
+	pos+=(len+1);
+    }
+    res.rm_eo=matched[0].rm_eo;
+    //puts(res.body);
+    return res;
+}
+    
 
 char *get_content(FILE *request){
     fseek(request,0,SEEK_END);
@@ -19,28 +62,48 @@ char *get_content(FILE *request){
         fgets(tmp,2000,request);
         strcat(content,tmp);
     }
+    rewind(request);
     return content;
 
 }
 
 int main(){
     //system("/usr/bin/curl https://www.biquge18.com/book/158683/  >tmp");
-    FILE *request=fopen("tmp","r");
+    FILE *request=fopen("./tmp","r");
     char *content=get_content(request);
     fclose(request);
-    puts(content);
+    //获取最新章节
+    struct Compile latest=compile(2,"<p>最新章节：<a href=\"(.*)\" target=\"_blank\" title=\".*\">(.*)</a></p>",content);
+    strcpy(chapters[0].name,latest.child[1]);
+    strcpy(chapters[0].url,latest.child[0]);
+    //截取全部最近章节
+    struct Compile newchapter=compile(0,"<div id=\"newchapter\"><dd><a href=\"/book.*</a></dd></div>",content);
+    //获取单个章节
+    char *tmp=newchapter.body;
+    for (int i=1;i<=6;i++){
+    	struct Compile recent=compile(2,"<a href=\"(.{0,100})\" target=\"_blank\" title=\".{0,50}\">(.{0,50})<.a>",tmp);
+	strcpy(chapters[i].name,recent.child[1]);
+	strcpy(chapters[i].url,recent.child[0]);
+	//tmp+=recent.rm_eo;
+	tmp[recent.rm_eo-1]='!';
+
+    }
 /*
-    regex_t latest_chapter_name,latest_chapter_url,recent_cahpters,test;
-    regcomp(&latest_chapter_name,"latest_chapter_name\" content=\".*?\"/>",REG_EXTENDED);
-    regcomp(&latest_chapter_url,"latest_chapter_url\" content=\".*?\"/>",REG_EXTENDED);
-    regcomp(&recent_cahpters,"<dd><a href=\".+?\" target=\"_blank\" title=\".+?\">.+?</a></dd>",REG_EXTENDED);
-    regcomp(&test,".{0,9}",REG_EXTENDED);
-    regmatch_t matched[6];
-    regexec(&latest_chapter_name,content,1,matched,REG_NOTBOL);
-    regexec(&latest_chapter_url,content,1,matched,REG_NOTBOL);
-    regexec(&test,content,6,matched,REG_NOTBOL);
+    puts("最新章节：");
+    printf("章节名:%s   URL:%s\n\n",chapters[0].name,chapters[1].url);
+    puts("最近章节：");
+    for (int i=1;i<=6;i++){
+	printf("章节名:%s   URL:%s\n",chapters[i].name,chapters[i].url);
+    }
 */
-
-
+    puts("以下是最新章节：");
+    printf("	(0)、%s\n",chapters[0].name);
+    puts("以下是最近章节：");
+    for(int i=1;i<=6;i++){
+    	printf("	(%d)、%s",i,chapters[i].name);
+	if(i%2==0){
+		putchar('\n');
+	}
+    }
     return 0;
 }

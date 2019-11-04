@@ -88,14 +88,6 @@ int main(){
 	tmp[recent.rm_eo-1]='!';
 
     }
-/*
-    puts("最新章节：");
-    printf("章节名:%s   URL:%s\n\n",chapters[0].name,chapters[1].url);
-    puts("最近章节：");
-    for (int i=1;i<=6;i++){
-	printf("章节名:%s   URL:%s\n",chapters[i].name,chapters[i].url);
-    }
-*/
     puts("以下是最新章节：");
     printf("	(0)、%s\n",chapters[0].name);
     puts("以下是最近章节：");
@@ -105,5 +97,21 @@ int main(){
 		putchar('\n');
 	}
     }
+    printf("请输入章节序号(默认为0)：");
+    int ch=0;
+    scanf("%d",&ch);
+    if (ch>6 ||ch<0){
+    	puts("错误的输入！");
+	exit(EXIT_FAILURE);
+    }
+    /*
+    puts(chapters[ch].name);
+    puts(chapters[ch].url);
+    */
+    char command[200]="/usr/bin/curl https://www.biquge18.com";
+    strcat(command,chapters[ch].url);
+    strcat(command," >tmp2");
+    puts(command);
+
     return 0;
 }

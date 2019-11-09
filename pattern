@@ -3,3 +3,11 @@
 <div id=\"newchapter\"><dd><a href=\"/book.*</a></dd></div>
 
 grep "<div id=\"newchapter\"><dd><a href=\"/book.*</a></dd></div>" tmp|grep "<a href=.\{0,100\}\" target=\"_blank\" title=\".\{0,50\}\">.\{0,50\}<.a>"
+
+
+"最新章节：<a href=\".*\" target=\"_blank\">.*</a></p>"
+
+
+
+
+

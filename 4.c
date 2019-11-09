@@ -2,7 +2,6 @@
 #include<stdlib.h>
 #include<regex.h>
 #include<string.h>
-
 struct Chapters{
     char name[100];
     char url[100];
@@ -17,6 +16,25 @@ struct Compile{
 	regoff_t rm_eo;
 };
  
+char *inverse(char *str){
+	char *res=malloc(strlen(str)+1);
+	int len=strlen("啊"),i=0,j=strlen(str)-1;
+	while(str[i]!='\0'){
+		if(str[i]>0x7F){
+			strncpy(&res[j-len+1],&str[i],len);
+			i+=len;
+			j-=len;
+	
+		}else{
+			strncpy(&res[j],&str[i],1);
+			i++;
+			j--;
+		}
+	}
+	res[strlen(str)]='\0';
+	return res;
+}
+
 struct Compile compile(int child_num,char *pattern,char *content){
     regex_t preg;
     regcomp(&preg,pattern,REG_EXTENDED);
@@ -47,7 +65,6 @@ struct Compile compile(int child_num,char *pattern,char *content){
 	pos+=(len+1);
     }
     res.rm_eo=matched[0].rm_eo;
-    //puts(res.body);
     return res;
 }
     
@@ -58,8 +75,8 @@ char *get_content(FILE *request){
     rewind(request);
     while (!feof(request))
     {  
-        char tmp[2000];
-        fgets(tmp,2000,request);
+        char tmp[50000];
+        fgets(tmp,50000,request);
         strcat(content,tmp);
     }
     rewind(request);
@@ -68,25 +85,21 @@ char *get_content(FILE *request){
 }
 
 int main(){
-    //system("/usr/bin/curl https://www.biquge18.com/book/158683/  >tmp");
+    //system("/usr/bin/curl https://www.xbiquge6.com/9_9933/ >tmp");
     FILE *request=fopen("./tmp","r");
     char *content=get_content(request);
     fclose(request);
     //获取最新章节
-    struct Compile latest=compile(2,"<p>最新章节：<a href=\"(.*)\" target=\"_blank\" title=\".*\">(.*)</a></p>",content);
+    struct Compile latest=compile(2,"最新章节：<a href=\"(.*)\" target=\"_blank\">(.*)</a></p>",content);
     strcpy(chapters[0].name,latest.child[1]);
     strcpy(chapters[0].url,latest.child[0]);
-    //截取全部最近章节
-    struct Compile newchapter=compile(0,"<div id=\"newchapter\"><dd><a href=\"/book.*</a></dd></div>",content);
-    //获取单个章节
-    char *tmp=newchapter.body;
+    //获取最近章节
+    char *content_inverse=inverse(content);
     for (int i=1;i<=6;i++){
-    	struct Compile recent=compile(2,"<a href=\"(.{0,100})\" target=\"_blank\" title=\".{0,50}\">(.{0,50})<.a>",tmp);
-	strcpy(chapters[i].name,recent.child[1]);
-	strcpy(chapters[i].url,recent.child[0]);
-	//tmp+=recent.rm_eo;
-	tmp[recent.rm_eo-1]='!';
-
+	struct Compile recent=compile(2,">dd/<>a/<(.{0,50})>\"(.{0,50})\"=ferh a<>dd<",content_inverse);
+	strcpy(chapters[i].name,inverse(recent.child[0]));
+	strcpy(chapters[i].url,inverse(recent.child[1]));
+	content_inverse+=recent.rm_eo;
     }
     puts("以下是最新章节：");
     printf("	(0)、%s\n",chapters[0].name);
@@ -104,14 +117,9 @@ int main(){
     	puts("错误的输入！");
 	exit(EXIT_FAILURE);
     }
-    /*
-    puts(chapters[ch].name);
-    puts(chapters[ch].url);
-    */
-    char command[200]="/usr/bin/curl https://www.biquge18.com";
+    char command[200]="/usr/bin/curl https://www.xbiquge6.com";
     strcat(command,chapters[ch].url);
     strcat(command," >tmp2");
     puts(command);
-
     return 0;
 }

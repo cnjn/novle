@@ -86,41 +86,78 @@ char *get_content(FILE *request){
 
 }
 
+
+void test(){
+
+        //int ch=2
+ 	FILE *fp=NULL,*fp2=NULL;
+    fp=fopen("tmp2","r+");
+	char *source=get_content(fp);
+    fclose(fp);
+    system("rm tmp3 -f");
+    fp=NULL;
+    fp=fopen("tmp3","w");
+     if (fp==NULL){
+       perror("出错了");
+       exit(-1);
+     }
+	struct Compile src=compile(1,"<div id=\"content\">(.*?)<.div>",source);
+	//strrpc(src.child[0],"&nbsp;"," ");
+	//strrpc(src.child[0],"<br />","\n");
+    //fputs(src.child[0],fp);
+    fputs("你好啊！",fp);
+    fclose(fp);
+
+}
+
 void display(int ch){
-	FILE *aa=fopen("./tmp2","r");
-	char *source=get_content(aa);
-	fclose(aa);
+    /*
+ 	FILE *fp=NULL,*fp2=NULL;
+    fp=fopen("tmp2","r+");
+	char *source=get_content(fp);
+    fclose(fp);
+    system("rm tmp3 -f");
+    fp=NULL;
+    fp=fopen("tmp3","w");
+     if (fp==NULL){
+       perror("出错了");
+       exit(-1);
+     }
 	struct Compile src=compile(1,"<div id=\"content\">(.*?)<.div>",source);
 	strrpc(src.child[0],"&nbsp;"," ");
 	strrpc(src.child[0],"<br />","\n");
-	FILE *res=NULL;
-	res=fopen("./tmp3","w");
-	fputs("你好啊！",res);
-	fclose(res);
+    fputs("你好啊！",fp);
+	//fputs(chapters[ch].name,fp);
+    /*
+	fputs("\n\n",fp);
+	fputs(src.child[0],fp);
+  	
+      */
+     test();
 }
-
 void read_novel(int ch){
+    
     char command[200]="/usr/bin/wget -O tmp2  https://www.xbiquge6.com";
     strcat(command,chapters[ch].url);
-    /*
+    
     int cc=system(command);
     if (cc<0){
     	puts("获取书源失败！");
 	exit(EXIT_FAILURE);
     }
-    */
+    
     display(ch);
 
 }
 
 int main(){
-    /*
+    
     int cc=system("/usr/bin/wget -O tmp https://www.xbiquge6.com/9_9933/");
     if (cc<0){
     	puts("获取书源失败！");
 	exit(EXIT_FAILURE);
     }
-    */
+    
     FILE *request=fopen("./tmp","r");
     char *content=get_content(request);
     fclose(request);

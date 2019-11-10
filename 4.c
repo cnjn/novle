@@ -93,33 +93,34 @@ void display(int ch){
 	struct Compile src=compile(1,"<div id=\"content\">(.*?)<.div>",source);
 	strrpc(src.child[0],"&nbsp;"," ");
 	strrpc(src.child[0],"<br />","\n");
-	FILE *cc=fopen("./tmp3","r+");
-	fputs(chapters[ch].name,cc);
-	//fputs("\n\n",cc);
-	//fputs(src.child[0],cc);
-    //fputs("\n\n",cc);
-	fclose(cc);
-	system("cat tmp3|more");
+	FILE *res=NULL;
+	res=fopen("./tmp3","w");
+	fputs("你好啊！",res);
+	fclose(res);
 }
 
 void read_novel(int ch){
     char command[200]="/usr/bin/wget -O tmp2  https://www.xbiquge6.com";
     strcat(command,chapters[ch].url);
+    /*
     int cc=system(command);
     if (cc<0){
     	puts("获取书源失败！");
 	exit(EXIT_FAILURE);
     }
+    */
     display(ch);
 
 }
 
 int main(){
+    /*
     int cc=system("/usr/bin/wget -O tmp https://www.xbiquge6.com/9_9933/");
     if (cc<0){
     	puts("获取书源失败！");
 	exit(EXIT_FAILURE);
     }
+    */
     FILE *request=fopen("./tmp","r");
     char *content=get_content(request);
     fclose(request);

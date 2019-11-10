@@ -2,6 +2,7 @@
 #include<stdlib.h>
 #include<regex.h>
 #include<string.h>
+#include"strrpc.h"
 struct Chapters{
     char name[100];
     char url[100];
@@ -37,7 +38,7 @@ char *inverse(char *str){
 
 struct Compile compile(int child_num,char *pattern,char *content){
     regex_t preg;
-    regcomp(&preg,pattern,REG_EXTENDED);
+    regcomp(&preg,pattern,REG_EXTENDED|REG_NEWLINE);
     regmatch_t matched[child_num+1];
     int vv=regexec(&preg,content,child_num+1,matched,REG_NOTBOL);
     if(vv!=0){
@@ -71,12 +72,13 @@ struct Compile compile(int child_num,char *pattern,char *content){
 
 char *get_content(FILE *request){
     fseek(request,0,SEEK_END);
-    char *content=malloc(ftell(request));
+    int size=ftell(request);
+    char *content=malloc(size);
     rewind(request);
     while (!feof(request))
     {  
-        char tmp[50000];
-        fgets(tmp,50000,request);
+        char tmp[size];
+        fgets(tmp,size,request);
         strcat(content,tmp);
     }
     rewind(request);
@@ -84,8 +86,40 @@ char *get_content(FILE *request){
 
 }
 
+void display(int ch){
+	FILE *aa=fopen("./tmp2","r");
+	char *source=get_content(aa);
+	fclose(aa);
+	struct Compile src=compile(1,"<div id=\"content\">(.*?)<.div>",source);
+	strrpc(src.child[0],"&nbsp;"," ");
+	strrpc(src.child[0],"<br />","\n");
+	FILE *cc=fopen("./tmp3","r+");
+	fputs(chapters[ch].name,cc);
+	//fputs("\n\n",cc);
+	//fputs(src.child[0],cc);
+    //fputs("\n\n",cc);
+	fclose(cc);
+	system("cat tmp3|more");
+}
+
+void read_novel(int ch){
+    char command[200]="/usr/bin/wget -O tmp2  https://www.xbiquge6.com";
+    strcat(command,chapters[ch].url);
+    int cc=system(command);
+    if (cc<0){
+    	puts("获取书源失败！");
+	exit(EXIT_FAILURE);
+    }
+    display(ch);
+
+}
+
 int main(){
-    //system("/usr/bin/curl https://www.xbiquge6.com/9_9933/ >tmp");
+    int cc=system("/usr/bin/wget -O tmp https://www.xbiquge6.com/9_9933/");
+    if (cc<0){
+    	puts("获取书源失败！");
+	exit(EXIT_FAILURE);
+    }
     FILE *request=fopen("./tmp","r");
     char *content=get_content(request);
     fclose(request);
@@ -110,6 +144,7 @@ int main(){
 		putchar('\n');
 	}
     }
+    strrpc(chapters[1].url,"\" class=\"empty"," ");
     printf("请输入章节序号(默认为0)：");
     int ch=0;
     scanf("%d",&ch);
@@ -117,9 +152,6 @@ int main(){
     	puts("错误的输入！");
 	exit(EXIT_FAILURE);
     }
-    char command[200]="/usr/bin/curl https://www.xbiquge6.com";
-    strcat(command,chapters[ch].url);
-    strcat(command," >tmp2");
-    puts(command);
+    read_novel(ch);
     return 0;
 }

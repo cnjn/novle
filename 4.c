@@ -3,6 +3,7 @@
 #include<regex.h>
 #include<string.h>
 #include"strrpc.h"
+#define MAX 1000000
 struct Chapters{
     char name[100];
     char url[100];
@@ -86,81 +87,84 @@ char *get_content(FILE *request){
 
 }
 
-
-void test(){
-
-        //int ch=2
- 	FILE *fp=NULL,*fp2=NULL;
-    fp=fopen("tmp2","r+");
-	char *source=get_content(fp);
+char *read_text(char *path){
+    FILE *fp;
+    char buff[MAX],*res=calloc(1,MAX);
+    if((fp=fopen(path,"r"))==NULL){
+    	puts("读取文件失败！");
+	exit(-1);
+    }
+    while(!feof(fp)){
+    	fgets(buff,MAX,fp);
+	strcat(res,buff);
+    }
     fclose(fp);
-    system("rm tmp3 -f");
-    fp=NULL;
-    fp=fopen("tmp3","w");
-     if (fp==NULL){
-       perror("出错了");
-       exit(-1);
-     }
-	struct Compile src=compile(1,"<div id=\"content\">(.*?)<.div>",source);
-	//strrpc(src.child[0],"&nbsp;"," ");
-	//strrpc(src.child[0],"<br />","\n");
-    //fputs(src.child[0],fp);
-    fputs("你好啊！",fp);
-    fclose(fp);
-
+    return res;
 }
 
-void display(int ch){
-    /*
- 	FILE *fp=NULL,*fp2=NULL;
-    fp=fopen("tmp2","r+");
-	char *source=get_content(fp);
+int write_text(char path[],char *text){
+    FILE *fp;
+    if((fp=fopen(path,"w"))==NULL){
+    	puts("打开文件失败！");
+	exit(-1);
+    }
+    int ret=fputs(text,fp);
     fclose(fp);
-    system("rm tmp3 -f");
-    fp=NULL;
-    fp=fopen("tmp3","w");
-     if (fp==NULL){
-       perror("出错了");
-       exit(-1);
-     }
-	struct Compile src=compile(1,"<div id=\"content\">(.*?)<.div>",source);
-	strrpc(src.child[0],"&nbsp;"," ");
-	strrpc(src.child[0],"<br />","\n");
-    fputs("你好啊！",fp);
-	//fputs(chapters[ch].name,fp);
-    /*
-	fputs("\n\n",fp);
-	fputs(src.child[0],fp);
-  	
-      */
-     test();
+    return ret;
 }
+char *get_novel(int ch){
+	/*
+    FILE *fp=NULL;
+    fp=fopen("tmp2","r");
+    if (fp==NULL){
+      perror("出错了");
+      exit(-1);
+     } 
+    char *source=get_content(fp);
+    */
+    char *source=read_text("./tmp2");
+    struct Compile src=compile(1,"<div id=\"content\">(.*?)<.div>",source);
+    strrpc(src.child[0],"&nbsp;"," ");
+    strrpc(src.child[0],"<br />","\n");
+    char *res=malloc(1000000);
+    strcpy(res,chapters[ch].name);
+    strcat(res,"\n\n");
+    strcat(res,src.child[0]);
+    return res;
+}
+
 void read_novel(int ch){
-    
+    /*
     char command[200]="/usr/bin/wget -O tmp2  https://www.xbiquge6.com";
     strcat(command,chapters[ch].url);
-    
     int cc=system(command);
     if (cc<0){
     	puts("获取书源失败！");
 	exit(EXIT_FAILURE);
     }
-    
-    display(ch);
-
+    */
+    char *aa=get_novel(ch);
+    //puts(aa);
+    write_text("./tmp3",aa);
 }
 
 int main(){
-    
+	/*
     int cc=system("/usr/bin/wget -O tmp https://www.xbiquge6.com/9_9933/");
     if (cc<0){
     	puts("获取书源失败！");
 	exit(EXIT_FAILURE);
     }
-    
+    */
+
+	/*
     FILE *request=fopen("./tmp","r");
-    char *content=get_content(request);
+    char *content="";
+    //char *content=get_content(request);
     fclose(request);
+    */
+
+    char *content=read_text("./tmp");
     //获取最新章节
     struct Compile latest=compile(2,"最新章节：<a href=\"(.*)\" target=\"_blank\">(.*)</a></p>",content);
     strcpy(chapters[0].name,latest.child[1]);

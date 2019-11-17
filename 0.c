@@ -48,7 +48,7 @@ struct Compile compile(int child_num,char *pattern,char *content){
 	exit(-1);
     }
     struct Compile res;
-    res.body=malloc(strlen(content)*child_num);
+    res.body=malloc(MAX);
     res.child=(char **)calloc(1,sizeof(char *));
     res.size=0;
     res.child_num=0;
@@ -110,27 +110,28 @@ char *get_novel(int ch){
 void read_novel(int ch){
     char command[200]="/usr/bin/wget -O tmp2  https://www.xbiquge6.com";
     strcat(command,chapters[ch].url);
-    /*
-    int cc=system(command);
-    if (cc<0){
-    	puts("获取书源失败！");
-	exit(EXIT_FAILURE);
-    }
-    */
+    system(command);
     char *aa=get_novel(ch);
-    //char aa[]="你好啊！";
-    puts(aa);
-    //write_text("./tmp3",aa);
+    write_text("tmp3",aa);
+    system("cat tmp3|less");
+    int isexist=-1;
+    if(ch>1){printf("	(0)、下一章");isexist=0;}
+    puts("	(1)、上一章	(2)、退出");
+    printf("阅读完毕，请选择下一步操作：");
+    int s=2;
+    LBA1: scanf("%d",&s);
+	  switch(s){
+	  	case 0:if(isexist==0) read_novel(ch-1);
+		case 1:read_novel(ch+1);//这里都不需break
+		case 2:exit(EXIT_SUCCESS);
+		default:printf("输入错误！请选择下一步操作：");
+			goto LBA1;
+	  }
 }
 
 int main(){
-	/*
-    int cc=system("/usr/bin/wget -O tmp https://www.xbiquge6.com/9_9933/");
-    if (cc<0){
-    	puts("获取书源失败！");
-	exit(EXIT_FAILURE);
-    }
-    */
+    system("/usr/bin/wget -O tmp https://www.xbiquge6.com/9_9933/");
+    //system("/usr/bin/wget -O tmp https://www.xbiquge6.com/20_20331/");
     char *content=read_text("./tmp");
     //获取最新章节
     struct Compile latest=compile(2,"最新章节：<a href=\"(.*)\" target=\"_blank\">(.*)</a></p>",content);
@@ -161,7 +162,7 @@ int main(){
     	puts("错误的输入！");
 	exit(EXIT_FAILURE);
     }
+
     read_novel(ch);
-    //write_text("tmp3","test");
     return 0;
 }
